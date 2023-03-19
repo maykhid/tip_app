@@ -6,12 +6,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -26,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tipapp.components.InputField
 import com.example.tipapp.ui.theme.TipAppTheme
+import com.example.tipapp.widgets.CircularIconButton
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,10 +50,33 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun TipView() {
+
+    val splitCounterState = remember {
+        mutableStateOf(1)
+    }
+
+
+    val tipAmountState = remember() {
+        mutableStateOf( 0.0)
+    }
+
+
+    val sliderPositionState = remember {
+        mutableStateOf(value = 0f)
+    }
+
+
+    val billState = remember {
+        mutableStateOf("")
+    }
+
+    val tipPercentage = (sliderPositionState.value * 100).toInt()
+
+    val billPerPersonValue = billState.value.ifEmpty { "0.0" }
+
+
     Column(modifier =
     Modifier
-        .fillMaxWidth()
-        .fillMaxHeight()
         .background(
             color = Color.White,
         ),
@@ -59,18 +86,29 @@ fun TipView() {
         Spacer(Modifier.height(40.dp))
 
         // total amount box
-        TotalAmountView()
+        TotalAmountView(
+            totalTip = calculateTotalPerPerson(
+            totalBill = billPerPersonValue.toDouble(),
+            splitBy = splitCounterState.value,
+            tipPercentage = tipPercentage
+        ))
 
         Spacer(Modifier.height(12.dp))
 
         // tip controls
-        TipControlView()
+        BillForm(modifier = Modifier,
+            splitCounterState = splitCounterState,
+            tipAmountState = tipAmountState,
+            sliderPositionState = sliderPositionState,
+            billState = billState,
+            tipPercentage = tipPercentage,
+        ) {}
 
     }
 }
 
 @Composable
-fun TotalAmountView() {
+fun TotalAmountView(totalTip: Double = 34.0) {
     Card(modifier = Modifier
         .fillMaxWidth(0.8f)
         .height(140.dp),
@@ -82,32 +120,41 @@ fun TotalAmountView() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Total Per Person", style = TextStyle(fontSize = 20.sp, color = Color.White))
-            Text(text = "$44.33", style = TextStyle(fontSize = 40.sp, color = Color.White, fontWeight = FontWeight.Bold))
+            Text(text = "$ ${"%.2f".format(totalTip)}", style = TextStyle(fontSize = 40.sp, color = Color.White, fontWeight = FontWeight.Bold))
         }
     }
 }
 
-@Preview
-@Composable
-fun TipControlView() {
-    BillForm() {
-        billAmount -> Log.d("bill", "$billAmount")
-    }
-}
+//@Preview
+//@Composable
+//fun TipControlView() {
+//    BillForm() {
+//        billAmount -> Log.d("bill", billAmount)
+//    }
+//}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun BillForm(modifier: Modifier = Modifier, onValueChanged: (String) -> Unit) {
-    val billState = remember {
-        mutableStateOf("")
-    }
+fun BillForm(modifier: Modifier = Modifier,
+             splitCounterState : MutableState<Int>,
+             tipAmountState: MutableState<Double>,
+             sliderPositionState: MutableState<Float>,
+             tipPercentage: Int,
+             billState: MutableState<String>,
+             onValueChanged: (String) -> Unit) {
+
     val isValidState = remember(billState.value) {
         billState.value.trim().isNotEmpty()
     }
 
+
     val keyboardController = LocalSoftwareKeyboardController.current
-    Card(modifier = Modifier
-        .fillMaxWidth(0.9f),
+
+
+
+    Card(
+        modifier = modifier
+        .fillMaxWidth(0.95f),
         shape = RoundedCornerShape(10.dp),
         border = BorderStroke(
             width = 0.2.dp,
@@ -116,8 +163,7 @@ fun BillForm(modifier: Modifier = Modifier, onValueChanged: (String) -> Unit) {
 
         ) {
         Column(
-//            verticalArrangement = Arrangement.Top,
-//            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.Top,
         ) {
             // text field
             InputField(
@@ -133,30 +179,82 @@ fun BillForm(modifier: Modifier = Modifier, onValueChanged: (String) -> Unit) {
                 }
             )
 
-            // split control
+            if (isValidState) {
+                Row( horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(horizontal = 10.dp)) {
+                    Text(text = "Split", modifier = Modifier.align(alignment = Alignment.CenterVertically))
 
-//                Box() {
-//                    Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-//                        Text(text = "Split")
-//
-////                        Spacer(modifier =  Modifier.fillMaxWidth())
-//
-//                        Card(
-//                            Modifier
-//                                .height(50.dp)
-//                                .width(50.dp), backgroundColor = Color.Black) {
-//
-//                        }
-//                    }
-//                }
+                    Spacer(Modifier.fillMaxWidth(0.5F))
+
+                    Row() {
+                        CircularIconButton(icon = Icons.Default.Remove,
+                            onClick = {
+                                if (splitCounterState.value > 1) {
+                                    splitCounterState.value -= 1
+                                }
+                            }
+                        )
+
+                        Text(text = "${ splitCounterState.value }", modifier = Modifier.align(Alignment.CenterVertically))
+
+                        CircularIconButton(icon = Icons.Default.Add,
+                            onClick = {
+                                splitCounterState.value += 1
+                              }
+                        )
+                    }
+                }
+
+                // Tip Row
+
+                Row( horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp)) {
+                    Text(text = "Tip", modifier = Modifier.align(alignment = Alignment.CenterVertically))
+
+                    Spacer(Modifier.fillMaxWidth(0.75F))
 
 
-            // tip
+                    Text(text = "$ ${tipAmountState.value}", modifier = Modifier.align(Alignment.CenterVertically))
 
-            // tip seek
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center)
+                {
+                    Text(text = "$tipPercentage %")
+
+                    Spacer(modifier = Modifier.width(50.dp))
+                    
+                    Slider(
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                        value = sliderPositionState.value, onValueChange = {
+                       newValue ->  sliderPositionState.value = newValue
+                            tipAmountState.value = calculateTipAmount(billState.value.toDouble(), tipPercentage)
+                    },
+                        steps = 5,
+                    )
+
+                }
+            } else {
+                Box() {
+                    
+                }
+            }
+
         }
-
     }
+}
+
+fun calculateTipAmount(totalBill : Double, tipPercentage: Int) : Double {
+    return if (totalBill > 1 && totalBill.toString().isNotEmpty()) {
+        (totalBill * tipPercentage) / 100
+    } else {
+        0.0
+    }
+}
+
+fun calculateTotalPerPerson(totalBill: Double, splitBy: Int, tipPercentage: Int): Double {
+    val bill = calculateTipAmount(totalBill, tipPercentage = tipPercentage) + totalBill
+    return (bill/splitBy)
 }
 
 

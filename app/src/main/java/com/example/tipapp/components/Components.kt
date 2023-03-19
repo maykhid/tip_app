@@ -1,5 +1,6 @@
 package com.example.tipapp.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,7 +31,7 @@ fun InputField (
     onAction: KeyboardActions = KeyboardActions.Default
         ) {
     OutlinedTextField(value = valueState.value,
-        modifier = modifier.padding(10.dp),
+        modifier = modifier.padding(10.dp).fillMaxWidth(),
         onValueChange = {valueState.value = it},
         label = {Text(text = labelId)},
         leadingIcon = { Icon(imageVector = Icons.Rounded.AttachMoney, contentDescription = "Money Icon")},
