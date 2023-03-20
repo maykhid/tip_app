@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tipapp.components.InputField
 import com.example.tipapp.ui.theme.TipAppTheme
+import com.example.tipapp.util.calculateTipAmount
+import com.example.tipapp.util.calculateTotalPerPerson
 import com.example.tipapp.widgets.CircularIconButton
 
 class MainActivity : ComponentActivity() {
@@ -141,7 +143,8 @@ fun BillForm(modifier: Modifier = Modifier,
              sliderPositionState: MutableState<Float>,
              tipPercentage: Int,
              billState: MutableState<String>,
-             onValueChanged: (String) -> Unit) {
+             onValueChanged: (String) -> Unit
+) {
 
     val isValidState = remember(billState.value) {
         billState.value.trim().isNotEmpty()
@@ -154,10 +157,11 @@ fun BillForm(modifier: Modifier = Modifier,
 
     Card(
         modifier = modifier
-        .fillMaxWidth(0.95f),
+        .fillMaxWidth(0.95f)
+            .padding(start = 12.dp),
         shape = RoundedCornerShape(10.dp),
         border = BorderStroke(
-            width = 0.2.dp,
+            width = 0.5.dp,
             color = Color.LightGray
         ),
 
@@ -212,7 +216,7 @@ fun BillForm(modifier: Modifier = Modifier,
                     Spacer(Modifier.fillMaxWidth(0.75F))
 
 
-                    Text(text = "$ ${tipAmountState.value}", modifier = Modifier.align(Alignment.CenterVertically))
+                    Text(text = "$ ${"%.2f".format(tipAmountState.value)}", modifier = Modifier.align(Alignment.CenterVertically))
 
                 }
 
@@ -242,19 +246,6 @@ fun BillForm(modifier: Modifier = Modifier,
 
         }
     }
-}
-
-fun calculateTipAmount(totalBill : Double, tipPercentage: Int) : Double {
-    return if (totalBill > 1 && totalBill.toString().isNotEmpty()) {
-        (totalBill * tipPercentage) / 100
-    } else {
-        0.0
-    }
-}
-
-fun calculateTotalPerPerson(totalBill: Double, splitBy: Int, tipPercentage: Int): Double {
-    val bill = calculateTipAmount(totalBill, tipPercentage = tipPercentage) + totalBill
-    return (bill/splitBy)
 }
 
 
