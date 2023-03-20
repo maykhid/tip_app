@@ -1,7 +1,6 @@
 package com.example.tipapp
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -30,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.tipapp.components.InputField
 import com.example.tipapp.ui.theme.TipAppTheme
 import com.example.tipapp.util.calculateTipAmount
-import com.example.tipapp.util.calculateTotalPerPerson
+import com.example.tipapp.util.calculateTotalTipPerPerson
 import com.example.tipapp.widgets.CircularIconButton
 
 class MainActivity : ComponentActivity() {
@@ -88,8 +87,8 @@ fun TipView() {
         Spacer(Modifier.height(40.dp))
 
         // total amount box
-        TotalAmountView(
-            totalTip = calculateTotalPerPerson(
+        TotalPerPersonView(
+            totalTip = calculateTotalTipPerPerson(
             totalBill = billPerPersonValue.toDouble(),
             splitBy = splitCounterState.value,
             tipPercentage = tipPercentage
@@ -110,7 +109,7 @@ fun TipView() {
 }
 
 @Composable
-fun TotalAmountView(totalTip: Double = 34.0) {
+fun TotalPerPersonView(totalTip: Double = 34.0) {
     Card(modifier = Modifier
         .fillMaxWidth(0.8f)
         .height(140.dp),
@@ -127,13 +126,6 @@ fun TotalAmountView(totalTip: Double = 34.0) {
     }
 }
 
-//@Preview
-//@Composable
-//fun TipControlView() {
-//    BillForm() {
-//        billAmount -> Log.d("bill", billAmount)
-//    }
-//}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -239,9 +231,7 @@ fun BillForm(modifier: Modifier = Modifier,
 
                 }
             } else {
-                Box() {
-                    
-                }
+                Box() {}
             }
 
         }
